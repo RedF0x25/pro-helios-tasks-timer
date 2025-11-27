@@ -92,6 +92,41 @@
     </div>
   </div>
 
+  <div id="rename-editor" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-rename-editor></div>
+    <div class="modal-panel">
+      <header class="modal-header">
+        <div>
+          <p class="modal-eyebrow">Rename task</p>
+          <h2 id="rename-editor-task-name">Current name</h2>
+          <p class="modal-helper">Give this task a clearer label for quicker recognition.</p>
+        </div>
+        <button class="modal-close btn btn-icon" type="button" title="Close" data-close-rename-editor>
+          ×
+        </button>
+      </header>
+
+      <form id="rename-editor-form" class="modal-body">
+        <label for="rename-editor-input">Task name</label>
+        <input
+          id="rename-editor-input"
+          name="name"
+          type="text"
+          placeholder="Enter task name"
+          autocomplete="off"
+          maxlength="80"
+          required
+        />
+        <p class="modal-input-hint">Keep it concise and action-focused.</p>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-secondary">Save name</button>
+          <button type="button" class="btn" data-close-rename-editor>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

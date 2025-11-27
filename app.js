@@ -22,6 +22,9 @@ let state = {
   linkEditor: {
     taskId: null,
   },
+  renameEditor: {
+    taskId: null,
+  },
 };
 
 function loadState() {
@@ -213,6 +216,7 @@ function renderTasks() {
   const pausedOverlay = ensurePausedOverlay();
   pausedOverlay.classList.toggle("visible", state.paused);
   syncLinkEditor();
+  syncRenameEditor();
 
   const filterOverdue = document.getElementById("filter-overdue-only").checked;
   const filterSoon = document.getElementById("filter-due-soon-only").checked;
@@ -273,7 +277,7 @@ function renderTasks() {
     renameBtn.type = "button";
     renameBtn.textContent = "✎";
     renameBtn.title = "Rename task";
-    renameBtn.addEventListener("click", () => onRenameTask(task.id));
+    renameBtn.addEventListener("click", () => openRenameEditor(task.id));
 
     titleRow.appendChild(title);
     titleRow.appendChild(renameBtn);
@@ -435,16 +439,6 @@ function onResetAll() {
   renderTasks();
 }
 
-function onRenameTask(taskId) {
-  const task = state.tasks.find((t) => t.id === taskId);
-  if (!task) return;
-  const nextName = prompt("Rename task", task.name);
-  if (!nextName) return;
-  state.tasks = state.tasks.map((t) => (t.id === taskId ? { ...t, name: nextName } : t));
-  saveState();
-  renderTasks();
-}
-
 function onMoveTask(taskId, delta) {
   const idx = state.tasks.findIndex((t) => t.id === taskId);
   if (idx === -1) return;
@@ -553,6 +547,62 @@ function syncLinkEditor() {
   });
 }
 
+function getRenameEditorElements() {
+  const container = document.getElementById("rename-editor");
+  if (!container) return null;
+  return {
+    container,
+    form: document.getElementById("rename-editor-form"),
+    input: document.getElementById("rename-editor-input"),
+    taskName: document.getElementById("rename-editor-task-name"),
+    backdropClose: container.querySelectorAll("[data-close-rename-editor]"),
+  };
+}
+
+function openRenameEditor(taskId) {
+  state.renameEditor.taskId = taskId;
+  syncRenameEditor();
+}
+
+function closeRenameEditor() {
+  state.renameEditor.taskId = null;
+  syncRenameEditor();
+}
+
+function syncRenameEditor() {
+  const els = getRenameEditorElements();
+  if (!els) return;
+  const { container, form, input, taskName, backdropClose } = els;
+  const task = state.tasks.find((t) => t.id === state.renameEditor.taskId) || null;
+
+  if (!task) {
+    container.setAttribute("aria-hidden", "true");
+    container.classList.remove("visible");
+    return;
+  }
+
+  container.setAttribute("aria-hidden", "false");
+  container.classList.add("visible");
+  taskName.textContent = task.name;
+  input.value = task.name;
+  input.focus();
+  input.select();
+
+  form.onsubmit = (ev) => {
+    ev.preventDefault();
+    const next = input.value.trim();
+    if (!next) return;
+    state.tasks = state.tasks.map((t) => (t.id === task.id ? { ...t, name: next } : t));
+    saveState();
+    closeRenameEditor();
+    renderTasks();
+  };
+
+  backdropClose.forEach((btn) => {
+    btn.onclick = () => closeRenameEditor();
+  });
+}
+
 function onTogglePause() {
   state.paused = !state.paused;
   const btn = document.getElementById("btn-pause");
@@ -581,6 +631,16 @@ function setupControls() {
       if (ev.key === "Escape") {
         ev.preventDefault();
         closeLinkEditor();
+      }
+    });
+  }
+
+  const renameEditor = document.getElementById("rename-editor");
+  if (renameEditor) {
+    renameEditor.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        closeRenameEditor();
       }
     });
   }
