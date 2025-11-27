@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HELIOS Pro Task Counter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-header-main">
+        <h1>HELIOS Pro Task Counter</h1>
+        <p class="subtitle">9-task scheduler dashboard</p>
+      </div>
+      <div class="app-header-controls">
+        <button id="btn-test-sound" class="btn btn-secondary">Test Sound</button>
+        <button id="btn-mute-all" class="btn btn-secondary">Mute All</button>
+        <button id="btn-pause" class="btn btn-secondary">Pause Timers</button>
+        <button id="btn-reset" class="btn btn-danger">Reset All</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="summary" id="summary">
+        <div class="summary-item">
+          <span class="label">Overdue</span>
+          <span class="value" id="summary-overdue">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Due Soon (&lt; 15 min)</span>
+          <span class="value" id="summary-soon">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">On Track</span>
+          <span class="value" id="summary-ok">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Now</span>
+          <span class="value" id="summary-now">0</span>
+        </div>
+      </section>
+
+      <section class="filters">
+        <label>
+          <input type="checkbox" id="filter-overdue-only" />
+          Show only overdue
+        </label>
+        <label>
+          <input type="checkbox" id="filter-due-soon-only" />
+          Show only due soon
+        </label>
+      </section>
+
+      <section class="tasks-grid" id="tasks-grid">
+        <!-- Task cards injected by app.js -->
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
