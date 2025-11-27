@@ -58,6 +58,40 @@
     </main>
   </div>
 
+  <div id="link-editor" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-link-editor></div>
+    <div class="modal-panel">
+      <header class="modal-header">
+        <div>
+          <p class="modal-eyebrow">Task link</p>
+          <h2 id="link-editor-task-name">Task name</h2>
+          <p class="modal-helper">Paste the URL you want to open from this task card.</p>
+        </div>
+        <button class="modal-close btn btn-icon" type="button" title="Close" data-close-link-editor>
+          ×
+        </button>
+      </header>
+
+      <form id="link-editor-form" class="modal-body">
+        <label for="link-editor-input">Link URL</label>
+        <input
+          id="link-editor-input"
+          name="url"
+          type="url"
+          placeholder="https://"
+          autocomplete="off"
+        />
+        <p class="modal-input-hint">Include http:// or https://. Leave empty to remove the link.</p>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-secondary">Save link</button>
+          <button type="button" id="link-editor-clear" class="btn btn-secondary btn-ghost">Remove link</button>
+          <button type="button" class="btn" data-close-link-editor>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

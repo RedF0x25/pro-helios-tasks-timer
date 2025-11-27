@@ -19,6 +19,9 @@ let state = {
   tasks: [],
   lastStatuses: {},
   globalMute: false,
+  linkEditor: {
+    taskId: null,
+  },
 };
 
 function loadState() {
@@ -209,6 +212,7 @@ function renderTasks() {
 
   const pausedOverlay = ensurePausedOverlay();
   pausedOverlay.classList.toggle("visible", state.paused);
+  syncLinkEditor();
 
   const filterOverdue = document.getElementById("filter-overdue-only").checked;
   const filterSoon = document.getElementById("filter-due-soon-only").checked;
@@ -373,7 +377,7 @@ function renderTasks() {
     linkEditBtn.type = "button";
     linkEditBtn.textContent = "🔗";
     linkEditBtn.title = task.url ? "Edit link" : "Set link";
-    linkEditBtn.addEventListener("click", () => onEditTaskLink(task.id));
+    linkEditBtn.addEventListener("click", () => openLinkEditor(task.id));
 
     const openLinkBtn = document.createElement("button");
     openLinkBtn.className = "btn btn-secondary btn-icon";
@@ -469,24 +473,84 @@ function onToggleTaskMute(taskId) {
   renderTasks();
 }
 
-function onEditTaskLink(taskId) {
-  const task = state.tasks.find((t) => t.id === taskId);
-  if (!task) return;
-  const next = prompt("Set link URL for this task", task.url || "https://");
-  if (!next) return;
-  state.tasks = state.tasks.map((t) =>
-    t.id === taskId ? { ...t, url: next.trim() } : t
-  );
-  saveState();
-  renderTasks();
-}
-
 function onOpenTaskLink(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task || !task.url) return;
   const url = task.url.trim();
   const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`;
   window.open(finalUrl, "_blank", "noopener");
+}
+
+function getLinkEditorElements() {
+  const container = document.getElementById("link-editor");
+  if (!container) return null;
+  return {
+    container,
+    backdropClose: container.querySelectorAll("[data-close-link-editor]"),
+    form: document.getElementById("link-editor-form"),
+    input: document.getElementById("link-editor-input"),
+    taskName: document.getElementById("link-editor-task-name"),
+    clearBtn: document.getElementById("link-editor-clear"),
+  };
+}
+
+function openLinkEditor(taskId) {
+  state.linkEditor.taskId = taskId;
+  syncLinkEditor();
+}
+
+function closeLinkEditor() {
+  state.linkEditor.taskId = null;
+  syncLinkEditor();
+}
+
+function syncLinkEditor() {
+  const els = getLinkEditorElements();
+  if (!els) return;
+  const { container, form, input, taskName } = els;
+  const task = state.tasks.find((t) => t.id === state.linkEditor.taskId) || null;
+
+  if (!task) {
+    container.setAttribute("aria-hidden", "true");
+    container.classList.remove("visible");
+    return;
+  }
+
+  container.setAttribute("aria-hidden", "false");
+  container.classList.add("visible");
+  taskName.textContent = task.name;
+  input.value = task.url || "";
+
+  const handleSubmit = (ev) => {
+    ev.preventDefault();
+    const raw = input.value.trim();
+    const nextUrl = raw.length ? raw : "";
+    state.tasks = state.tasks.map((t) =>
+      t.id === task.id ? { ...t, url: nextUrl } : t
+    );
+    saveState();
+    closeLinkEditor();
+    renderTasks();
+  };
+
+  const handleClear = () => {
+    input.value = "";
+    state.tasks = state.tasks.map((t) =>
+      t.id === task.id ? { ...t, url: "" } : t
+    );
+    saveState();
+    closeLinkEditor();
+    renderTasks();
+  };
+
+  form.onsubmit = handleSubmit;
+  const { clearBtn, backdropClose } = els;
+  if (clearBtn) {
+    clearBtn.onclick = handleClear;
+  }
+  backdropClose.forEach((btn) => {
+    btn.onclick = () => closeLinkEditor();
+  });
 }
 
 function onTogglePause() {
@@ -510,6 +574,16 @@ function setupControls() {
 
   document.getElementById("filter-overdue-only").addEventListener("change", renderTasks);
   document.getElementById("filter-due-soon-only").addEventListener("change", renderTasks);
+
+  const linkEditor = document.getElementById("link-editor");
+  if (linkEditor) {
+    linkEditor.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        closeLinkEditor();
+      }
+    });
+  }
 }
 
 function startLoop() {
